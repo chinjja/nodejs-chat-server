@@ -68,7 +68,7 @@ app.put('/rooms/:id', (req, res) => {
                     type: 'updated-rooms',
                     method: 'put',
                     data: {
-                        id: req.params.id,
+                        id: +req.params.id,
                         title: req.body.title
                     }
                 })
