@@ -1,10 +1,12 @@
 const sqlite = require('sqlite3')
 const express = require('express')
 const url = require('url')
+const cookieParser = require('cookie-parser')
 const WebSocketServer = require('ws').Server
 
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
 app.get('/rooms/:id', (req, res) => {
     console.log('get ' + req.url)
     get_room(res, req.params.id)
