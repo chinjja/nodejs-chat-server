@@ -1,8 +1,16 @@
-const sqlite = require('sqlite3')
+const Room = require('./model')
 const express = require('express')
 const url = require('url')
 const cookieParser = require('cookie-parser')
 const WebSocketServer = require('ws').Server
+
+Room.sync()
+.then(() => {
+    console.log('db ready');
+})
+.catch(() => {
+    console.log('db not ready');
+});
 
 const app = express()
 app.use(express.json())
@@ -17,67 +25,62 @@ app.get('/rooms', (req, res) => {
     get_room(res, query.id)
 })
 
-function get_room(res, id) {
-    if(id) {
-        db.get('select * from chat where id=?', [id], (err, row) => {
-            res.status(err ? 400 : 200).json(err || row || {})
-        })
-    } else {
-        db.all('select * from chat', (err, rows) => {
-            res.status(err ? 400 : 200).json(err || rows || {})
-        })
+async function get_room(res, id) {
+    try {
+        if(id) {
+            const result = await Room.findOne({where: {id: id}});
+            res.json(result.toJSON());
+        } else {
+            const result = await Room.findAll();
+            const array = []
+            result.forEach(it => {array.push(it.toJSON())});
+            res.json(array);
+        }
+    } catch(error) {
+        res.status(400).json(error);
     }
 }
 
-app.post('/rooms', (req, res) => {
+app.post('/rooms', async (req, res) => {
     console.log('post ' + req.url)
    
-    if(!req.body.title) {
+    const title = req.body.title;
+    if(!title) {
         res.status(400).json('require title in body')
         return
     }
-    db.serialize(() => {
-        db.run('insert into chat values(null, ?)', req.body.title || 'no title')
-        .get('select * from chat where id = last_insert_rowid()', (err, row) => {
-            if(err) {
-                console.log(err)
-                res.status(400).json(err)
-            }
-            else {
-                res.status(201).json(row)
-                broadcast({
-                    type: 'updated-rooms',
-                    method: 'post',
-                    data: row
-                })
-            }
-        })
+    const room = await Room.create({title: title});
+    res.json(room.toJSON());
+    broadcast({
+        type: 'updated-rooms',
+        method: 'post',
+        data: room.toJSON()
     })
 })
 
-app.put('/rooms/:id', (req, res) => {
+app.put('/rooms/:id', async (req, res) => {
     console.log('put ' + req.url)
 
-    if(req.body.title) {
-        db.run('update chat set title=? where id=?', [req.body.title, req.params.id], (err) => {
-            if(err) {
-                console.log(err)
-                res.status(400).json(err)
-            }
-            else {
-                res.status(200).json({})
-                broadcast({
-                    type: 'updated-rooms',
-                    method: 'put',
-                    data: {
-                        id: +req.params.id,
-                        title: req.body.title
-                    }
-                })
-            }
-        })
-    } else {
-        res.status(400).json('require title')
+    try {
+        const id = +req.body.id;
+        const title = req.body.title;
+        if(title) {
+            const room = await Room.findOne({
+                where: {id: id}
+            });
+            room.title = title;
+            await room.save();
+            res.json(room.toJSON());
+            broadcast({
+                type: 'updated-rooms',
+                method: 'put',
+                data: room.toJSON()
+            });
+        } else {
+            res.status(400).json('require title');
+        }
+    } catch(error) {
+        res.status(400).json(error);
     }
 })
 app.delete('/rooms/:id', (req, res) => {
@@ -96,32 +99,28 @@ app.delete('/rooms', (req, res) => {
     }
 })
 
-function delete_room(res, ids) {
+async function delete_room(res, ids) {
     if(ids) {
-        db.serialize(() => {
-            db.run('begin')
-            let stmt = db.prepare('delete from chat where id=?')
-            for(let i = 0; i < ids.length; i++) {
-                stmt.run(ids[i])
+        const t = await Room.sequelize.transaction();
+        try {
+            for(let id of ids) {
+                await Room.destroy({
+                    where: {id: id}
+                });
             }
-            stmt.finalize()
-            db.run('commit', (err)=>{
-                if(err) {
-                    console.log(err)
-                    res.status(400).json(err)
-                }
-                else {
-                    res.status(200).json({})
-                    broadcast({
-                        type: 'updated-rooms',
-                        method: 'delete',
-                        data: ids
-                    })
-                }
-            })    
-        })
+            t.commit();
+            res.json({});
+            broadcast({
+                type: 'updated-rooms',
+                method: 'delete',
+                data: ids
+            });
+        } catch(error) {
+            t.rollback();
+            res.status(400).json(error);
+        }
     } else {
-        res.status(400).json('require id')
+        res.status(400).json('require id');
     }
 }
 
@@ -133,9 +132,6 @@ function broadcast(obj) {
 function is_empty(obj) {
     return Object.keys(obj).length === 0
 }
-
-let db = new sqlite.Database('./data/chat.db')
-db.run('create table if not exists chat(id integer primary key, title text not null)')
 
 let wss = new WebSocketServer({server: app.listen(8888)})
 let room_sockets = new Set()
