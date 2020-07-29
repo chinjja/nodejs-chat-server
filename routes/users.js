@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/users');
 const router = express.Router();
+const crypt = require('../crypt-utils');
 
 router.get('/:id', async (req, res) => {
     console.log('get ' + req.url)
@@ -25,7 +26,8 @@ router.post('/', async (req, res) => {
             res.json('require email and password in body')
             return;
         }
-        const user = await User.create({email: email, password: password});
+        const encoded = await crypt.hash(password);
+        const user = await User.create({email: email, password: encoded});
         res.json(user.toJSON());
     } catch(error) {
         res.json(error);
