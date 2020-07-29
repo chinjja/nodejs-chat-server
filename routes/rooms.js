@@ -79,12 +79,7 @@ router.delete('/:id', (req, res) => {
 router.delete('/', (req, res) => {
     console.log('delete ' + req.url)
     console.log(req.body)
-    let query = url.parse(req.url, true).query
-    if(is_empty(req.body)) {
-        delete_room(res, [query.id])
-    } else {
-        delete_room(res, req.body)
-    }
+    delete_room(res, req.body);
 })
 
 async function delete_room(res, ids) {
@@ -113,12 +108,20 @@ async function delete_room(res, ids) {
 }
 
 function broadcast(obj) {
-    let json = JSON.stringify(obj)
-    room_sockets.forEach((ws)=>ws.send(json))
+    let json = JSON.stringify(obj);
+    sockets.forEach((ws)=>ws.send(json));
 }
 
-function is_empty(obj) {
-    return Object.keys(obj).length === 0
+const sockets = new Set();
+function websock(ws) {
+    sockets.add(ws);
+    ws.onmessage = (e) => {
+        console.log('message ' + e.data);
+    }
+    ws.onclose = (e) => {
+        sockets.delete(ws)
+        console.log('close code: ' + e.code + ', reason: ' + e.reason);
+    }
 }
-
+router.websock = websock;
 module.exports = router;
