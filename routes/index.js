@@ -17,7 +17,8 @@ router.get('/login', async (req, res) => {
     });
     if(user && user.password === req.body.password) {
         jwt.sign({
-            email: 'chinjja@gmail.com'
+            id: user.id,
+            email: user.email
         }, secretObj.secret, {expiresIn: '5m'}, (err, token) => {
             if(err) {
                 res.json(err);
