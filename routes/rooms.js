@@ -50,7 +50,7 @@ router.put('/:id', async (req, res) => {
     console.log('put ' + req.url)
 
     try {
-        const id = +req.body.id;
+        const id = +req.params.id;
         const title = req.body.title;
         if(title) {
             const room = await Room.findOne({
