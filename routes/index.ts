@@ -3,6 +3,7 @@ import User from '../models/users';
 import jwt from 'jsonwebtoken';
 import secretObj from '../config/jwt';
 const router = express.Router();
+const crypt = require('../crypt-utils');
 
 router.get('/login', async (req, res) => {
     if(!req.body.email || !req.body.password) {
@@ -15,7 +16,8 @@ router.get('/login', async (req, res) => {
             email: req.body.email
         }
     });
-    if(user && user.password === req.body.password) {
+    const ok = await crypt.compare(req.body.password, user.password);
+    if(ok) {
         jwt.sign({
             id: user.id,
             email: user.email
