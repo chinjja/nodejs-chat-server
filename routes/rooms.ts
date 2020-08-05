@@ -1,19 +1,21 @@
-const express = require('express');
-const url = require('url');
-const Room = require('../models/rooms');
+import express from 'express';
+import url from 'url';
+import Room from '../models/rooms';
+import ws from 'ws';
+import { AttachSock } from '../attach-sock';
 const router = express.Router();
 
 router.get('/:id', (req, res) => {
     console.log('get ' + req.url)
-    get_room(res, req.params.id)
+    get_room(res, +req.params.id)
 })
 router.get('/', (req, res) => {
     console.log('get ' + req.url)
     let query = url.parse(req.url, true).query
-    get_room(res, query.id)
+    get_room(res, +query.id)
 })
 
-async function get_room(res, id) {
+async function get_room(res: express.Response, id: number) {
     try {
         if(id) {
             const result = await Room.findOne({where: {id: id}});
@@ -74,7 +76,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', (req, res) => {
     console.log('delete ' + req.url)
     console.log(req.body)
-    delete_room(res, [req.params.id])
+    delete_room(res, [+req.params.id])
 })
 router.delete('/', (req, res) => {
     console.log('delete ' + req.url)
@@ -82,7 +84,7 @@ router.delete('/', (req, res) => {
     delete_room(res, req.body);
 })
 
-async function delete_room(res, ids) {
+async function delete_room(res: express.Response, ids: number[]) {
     if(ids) {
         const t = await Room.sequelize.transaction();
         try {
@@ -107,13 +109,15 @@ async function delete_room(res, ids) {
     }
 }
 
-function broadcast(obj) {
+function broadcast(obj: any) {
     let json = JSON.stringify(obj);
     sockets.forEach((ws)=>ws.send(json));
 }
 
-const sockets = new Set();
-function websock(ws) {
+const sockets = new Set<ws>();
+
+
+export const attach: AttachSock = (ws) => {
     sockets.add(ws);
     ws.onmessage = (e) => {
         console.log('message ' + e.data);
@@ -123,5 +127,5 @@ function websock(ws) {
         console.log('close code: ' + e.code + ', reason: ' + e.reason);
     }
 }
-router.websock = websock;
-module.exports = router;
+
+export {router};

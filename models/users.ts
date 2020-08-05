@@ -1,7 +1,11 @@
-const {Model, DataTypes } = require('sequelize');
-const sequelize = require('./share');
+import { Model, DataTypes } from "sequelize";
+import sequelize from "./share";
 
-class User extends Model {}
+export default class User extends Model {
+    id: number;
+    email: string;
+    password: string;
+}
 
 User.init({
     email: {
@@ -19,5 +23,3 @@ User.init({
 }, {sequelize});
 
 User.sync();
-
-module.exports = User;

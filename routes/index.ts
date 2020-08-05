@@ -1,8 +1,8 @@
-const express = require('express');
+import * as express from 'express';
+import User from '../models/users';
+import jwt from 'jsonwebtoken';
+import secretObj from '../config/jwt';
 const router = express.Router();
-const User = require('../models/users');
-const jwt = require('jsonwebtoken');
-const secretObj = require('../config/jwt');
 
 router.get('/login', async (req, res) => {
     if(!req.body.email || !req.body.password) {
@@ -34,4 +34,4 @@ router.get('/login', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;
