@@ -1,7 +1,8 @@
 import * as express from 'express';
-import User from '../models/users';
-const router = express.Router();
 import * as crypt from '../crypt-utils';
+import User from '../models/users';
+
+export const router = express.Router();
 
 router.get('/:id', async (req, res) => {
     console.log('get ' + req.url)
@@ -43,5 +44,3 @@ router.delete('/:id', async (req, res) => {
         res.json(error);
     }
 });
-
-export default router;
