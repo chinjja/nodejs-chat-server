@@ -1,7 +1,7 @@
 import * as express from 'express';
 import User from '../models/users';
 const router = express.Router();
-const crypt = require('../crypt-utils');
+import * as crypt from '../crypt-utils';
 
 router.get('/:id', async (req, res) => {
     console.log('get ' + req.url)

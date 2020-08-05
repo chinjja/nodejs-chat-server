@@ -2,8 +2,8 @@ import * as express from 'express';
 import User from '../models/users';
 import jwt from 'jsonwebtoken';
 import secretObj from '../config/jwt';
+import * as crypt from '../crypt-utils';
 const router = express.Router();
-const crypt = require('../crypt-utils');
 
 router.get('/login', async (req, res) => {
     if(!req.body.email || !req.body.password) {

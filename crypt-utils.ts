@@ -1,9 +1,7 @@
-const bcrypt = require('bcrypt-nodejs');
+import bcrypt from 'bcrypt-nodejs';
 
-function genSalt(rounds) {
-    if(!rounds) rounds = 10;
-
-    return new Promise((resolve, reject) => {
+export function genSalt(rounds = 10) {
+    return new Promise<string>((resolve, reject) => {
         bcrypt.genSalt(rounds, (error, result) => {
             if(error) {
                 reject(error);
@@ -14,8 +12,8 @@ function genSalt(rounds) {
     });
 }
 
-function hash(password, salt) {
-    return new Promise(async (resolve, reject) => {
+export function hash(password: string, salt?: string) {
+    return new Promise<string>(async (resolve, reject) => {
         if(typeof salt == 'undefined') {
             salt = await genSalt();
         }
@@ -29,8 +27,8 @@ function hash(password, salt) {
     });
 }
 
-function compare(password, hash) {
-    return new Promise((resolve, reject) => {
+export function compare(password: string, hash: string) {
+    return new Promise<boolean>((resolve, reject) => {
         bcrypt.compare(password, hash, (error, ok) => {
             if(error) {
                 reject(error);
@@ -40,7 +38,3 @@ function compare(password, hash) {
         });
     });
 }
-
-module.exports.genSalt = genSalt;
-module.exports.hash = hash;
-module.exports.compare = compare;
