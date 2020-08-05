@@ -3,7 +3,8 @@ import url from 'url';
 import Room from '../models/rooms';
 import ws from 'ws';
 import { AttachSock } from '../attach-sock';
-const router = express.Router();
+
+export const router = express.Router();
 
 router.get('/:id', (req, res) => {
     console.log('get ' + req.url)
@@ -127,5 +128,3 @@ export const attach: AttachSock = (ws) => {
         console.log('close code: ' + e.code + ', reason: ' + e.reason);
     }
 }
-
-export {router};
