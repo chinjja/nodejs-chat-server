@@ -3,4 +3,4 @@ const sequelize = new Sequelize('sqlite:temp/db.sqlite', {
     logging: false
 });
 
-export = sequelize;
+export default sequelize;

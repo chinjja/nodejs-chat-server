@@ -1,7 +1,7 @@
 import {Model, DataTypes } from 'sequelize';
 import sequelize from './share';
 
-class Room extends Model {
+export default class Room extends Model {
     id: number;
     title: string;
 }
@@ -11,5 +11,3 @@ Room.init({
 }, {sequelize});
 
 Room.sync();
-
-export = Room;
