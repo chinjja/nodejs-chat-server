@@ -6,11 +6,13 @@ import * as attach from './attach-sock';
 import * as rooms from './routes/rooms';
 import * as users from './routes/users';
 import * as index from './routes/index';
+import * as ports from './routes/ports';
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use('/rooms', rooms.router);
 app.use('/users', users.router);
+app.use('/ports', ports.router);
 app.use('/', index.router);
 
 const wss = new ws.Server({server: app.listen(8888)});
