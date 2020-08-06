@@ -21,9 +21,16 @@ const sockRouter: attach.AttachSockMap = {
 
 wss.on('connection', (ws, request) => {
     console.log('websocket ' + request.url);
+    if(!request.url) {
+        ws.close();
+        return;
+    }
+
     const path = url.parse(request.url, true).path;
-    if(sockRouter[path]) {
+    if(path && sockRouter[path]) {
         sockRouter[path](ws);
+    } else {
+        ws.close();
     }
 })
 wss.on('listening', () => {

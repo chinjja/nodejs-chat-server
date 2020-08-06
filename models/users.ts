@@ -1,9 +1,9 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "./share";
 export default class User extends Model {
-    id: number;
-    email: string;
-    password: string;
+    id!: number;
+    email!: string;
+    password!: string;
 }
 
 User.init({

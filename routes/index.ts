@@ -17,6 +17,10 @@ router.get('/login', async (req, res) => {
             email: req.body.email
         }
     });
+    if(!user) {
+        res.send('not found user');
+        return;
+    }
     const ok = await crypt.compare(req.body.password, user.password);
     if(ok) {
         jwt.sign({

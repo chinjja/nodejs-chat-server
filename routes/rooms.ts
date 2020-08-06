@@ -13,17 +13,21 @@ router.get('/:id', (req, res) => {
 router.get('/', (req, res) => {
     console.log('get ' + req.url)
     let query = url.parse(req.url, true).query
-    get_room(res, +query.id)
+    get_room(res, +query.id!)
 })
 
 async function get_room(res: express.Response, id: number) {
     try {
         if(id) {
             const result = await Room.findOne({where: {id: id}});
+            if(!result) {
+                res.status(400).json("not found");
+                return;
+            }
             res.json(result.toJSON());
         } else {
             const result = await Room.findAll();
-            const array = []
+            const array: object[] = [];
             result.forEach(it => {array.push(it.toJSON())});
             res.json(array);
         }
@@ -59,6 +63,10 @@ router.put('/:id', async (req, res) => {
             const room = await Room.findOne({
                 where: {id: id}
             });
+            if(!room) {
+                res.status(400).json('not found');
+                return;
+            }
             room.title = title;
             await room.save();
             res.json(room.toJSON());
@@ -87,7 +95,7 @@ router.delete('/', (req, res) => {
 
 async function delete_room(res: express.Response, ids: number[]) {
     if(ids) {
-        const t = await Room.sequelize.transaction();
+        const t = await Room.sequelize!.transaction();
         try {
             for(let id of ids) {
                 await Room.destroy({

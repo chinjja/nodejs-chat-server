@@ -8,10 +8,10 @@ router.get('/:id', async (req, res) => {
     console.log('get ' + req.url)
     try {
         const user = await User.findOne({where: {id: req.params.id}});
-        if(user) {
-            res.json(user.toJSON());
+        if(!user) {
+            res.status(400).json("not exists");
         } else {
-            res.json({});
+            res.json(user.toJSON());
         }
     } catch(error) {
         res.json(error);
