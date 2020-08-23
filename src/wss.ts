@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import url from 'url';
 import cookieParser from 'cookie-parser';
 import ws from 'ws';
@@ -8,6 +9,7 @@ import * as users from './routes/users';
 import * as index from './routes/index';
 import * as ports from './routes/ports';
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use('/rooms', rooms.router);
