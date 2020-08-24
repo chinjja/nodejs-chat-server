@@ -60,7 +60,7 @@ router.put('/:id', async (req, res) => {
         const id = +req.params.id;
         const title = req.body.title;
         if(title) {
-            const room = await Room.findOne({
+            let room = await Room.findOne({
                 where: {id: id}
             });
             if(!room) {
@@ -68,7 +68,7 @@ router.put('/:id', async (req, res) => {
                 return;
             }
             room.title = title;
-            await room.save();
+            room = await room.save();
             res.json(room.toJSON());
             broadcast({
                 type: 'updated-rooms',
@@ -95,14 +95,17 @@ router.delete('/', (req, res) => {
 
 async function delete_room(res: express.Response, ids: number[]) {
     if(ids) {
-        const t = await Room.sequelize!.transaction();
+        const t = await Room.sequelize!.transaction({
+            autocommit: false,
+        });
         try {
             for(let id of ids) {
                 await Room.destroy({
-                    where: {id: id}
+                    where: {id: id},
+                    transaction: t,
                 });
             }
-            t.commit();
+            await t.commit();
             res.json({});
             broadcast({
                 type: 'updated-rooms',
@@ -110,7 +113,7 @@ async function delete_room(res: express.Response, ids: number[]) {
                 data: ids
             });
         } catch(error) {
-            t.rollback();
+            await t.rollback();
             res.status(400).json(error);
         }
     } else {
