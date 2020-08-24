@@ -1,7 +1,7 @@
 import express from 'express';
 import url from 'url';
 import Room from '../models/rooms';
-import ws from 'ws';
+import ws from 'websocket';
 import { AttachSock } from '../attach-sock';
 
 export const router = express.Router();
@@ -120,19 +120,11 @@ async function delete_room(res: express.Response, ids: number[]) {
 
 function broadcast(obj: any) {
     let json = JSON.stringify(obj);
-    sockets.forEach((ws)=>ws.send(json));
+    wss?.broadcastUTF(json);
 }
 
-const sockets = new Set<ws>();
-
+let wss: ws.server | undefined;
 
 export const attach: AttachSock = (ws) => {
-    sockets.add(ws);
-    ws.onmessage = (e) => {
-        console.log('message ' + e.data);
-    }
-    ws.onclose = (e) => {
-        sockets.delete(ws)
-        console.log('close code: ' + e.code + ', reason: ' + e.reason);
-    }
+    wss = ws;
 }

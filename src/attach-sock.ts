@@ -1,9 +1,9 @@
-import ws from 'ws';
+import ws from 'websocket';
 
 export interface AttachSockMap {
     [key: string]: AttachSock;
 }
 
 export interface AttachSock {
-    (sock: ws): void;
+    (sock: ws.server): void;
 }
